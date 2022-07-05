@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html>
+  <!--Picture from: https://unsplash.com/photos/uuhD96VBp4k-->
+  <head>
+    <meta charset="utf-8">
+
+    <title>Get Password for Bomb Game</title>
+
+    <style>
+      html{
+        color: black;
+       
+        background-image:linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,.5)),url("https://bit.ly/3IhVNCp");
+        background-size: cover;
+        padding: 3%;
+        font-size: 105%;
+        
+      }
+      body {
+        font-family: Copperplate, Papyrus, fantasy;
+        width: 50%;
+        max-width: 800px;
+        min-width: 480px;
+        margin: 0 auto;
+      }
+
+      .important{
+        font-size: 120%;
+        font-style: bold;
+        color: red;
+      }
+
+      .lastResult {
+        color: white;
+        padding: 3px;
+      }
+      .gameMessage{
+        color: blue;  
+        font-size: 140%;
+      }
+      .curCount{
+        color: rgb(22, 122, 228);
+        font-size: 140%;
+      }
+      .guessLabel{
+        color: rgba(18, 16, 117, 0.784);
+        font-size: 140%;
+      }
+      .guessField{
+        border-radius: 8px;
+        border:2px solid navy;
+        background-color: rgb(181, 217, 240);
+      }
+      
+      .chanceList{
+        padding: 5px;
+        font-size: 140%;
+        color: navy;
+      }
+      .guessSubmit{
+        border-radius: 6px;
+        font-size: 100%;
+        background-color: rgb(136, 180, 216);
+        font-family: Copperplate, Papyrus, fantasy;
+      }
+      .superChance{
+        border-radius: 6px;
+        font-size: 100%;
+        background-color: rgb(156, 210, 254);
+        font-family: Copperplate, Papyrus, fantasy;
+      }
+      .restartGame{
+        border-radius: 6px;
+        font-size: 100%;
+        background-color: rgb(180, 217, 248);
+        font-family: Copperplate, Papyrus, fantasy;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <h1><u>Get Password for Bomb Games</u></h1>
+    <h3>Game Rule: </h3>
+
+    <ul><li>We have selected a random number between <span class="important">1 and 100</span>.</li>
+        <li>You have to guess the random number in <span class="important">5</span> chances, and 
+        each time you guess the boundary will change from your guess to upper boundary or lower boudary. </li>
+        <li>You have to get random number within the chances you have, overwise the bomb will exploded and <span class="important">GAMEOVER</span>.</li>
+        <li>When you guess wrong the boundries will be <span class="important">2</span> times larger. (All wrong answers must be valid integer)</li>
+        <li>Everytime when the boundary expand, the random number will also be <span class="important">2</span> times larger.</li>
+        <li>You have a Super chance at your <span class="important">5th guess</span> which will give you four random number in the boundary include the password.</li>
+        <li>However Super chance can <span class="important">only</span> be used when the differences between the boundaries are greater than <span class="important">10</span>. (Ex. Range between 10 to 20 etc)</li>
+        <li>Super Chance: You will be given <span class="important">4</span> random numbers <span class="important">include the password</span>, and you can pick <span class="important">1</span> of them for your guess.</li>  
+        </li>
+      </ul>
+        
+
+    <div class="resultParas">
+      <p class="gameMessage"></p>
+      <p class="curCount"></p>
+      <p class="lastResult"></p>
+    </div>
+
+    <div class="form">
+      <label for="guessField" class="guessLabel">Enter a guess: </label>
+      <input type="text" id="guessField" class="guessField">
+      <input type="submit" value="Submit Guess" class="guessSubmit">
+      <input type="button" value="Super Chance" class="superChance">
+      <input type="button" value="Restart" class="restartGame">
+    </div>
+
+    <p class="chanceList"></p>
+
+    <script>
+        // Your JavaScript goes here
+        let randomNumber = -100;
+        
+        //----- get randomNumber -----------------------------------------------------
+        function getRandom(){
+            randomNumber = Math.floor(Math.random() *100) + 1;
+            console.log(randomNumber); 
+        }
+
+        //----------------------------------------------------------------------------
+
+        const lastResult = document.querySelector('.lastResult');
+        const gameMessage = document.querySelector('.gameMessage');
+        const curCount = document.querySelector('.curCount');
+
+        const guessSubmit = document.querySelector('.guessSubmit');
+        const guessField = document.querySelector('.guessField');
+        const superChance = document.querySelector('.superChance');
+        const restartBut = document.querySelector('.restartGame');
+
+        const chanceList = document.querySelector('.chanceList');
+        // count player guess
+        let userGuessCount = 0;
+        let getWrongCount = 0;
+        // set upper and lower bounds
+        let lowBound = 0;
+        let upBound = 100;
+        let diff = -1;
+        // if the player used super chance
+        let usedChance = false;
+        // store super chance number list
+        let randNumArray = [];
+
+
+        //----- print boundary-------------------------------------------------------
+        function printBound(){
+            gameMessage.textContent = 'The Range:  ' + String(lowBound) + ' to ' + String(upBound) + ' ';
+        }
+
+        //----- print error ---------------------------------------------------------
+        function printError(){
+            gameMessage.textContent = 'Invalid Guess !!! please guess a NEW guess between '+ String(lowBound) + ' to ' + String(upBound) +' ';
+            guessField.value='';
+            guessField.focus();
+        }
+
+        //----- expand boundary -----------------------------------------------------
+        function expandBound(){
+          lowBound = lowBound * 2;
+          upBound = upBound * 2;
+          randomNumber = randomNumber * 2;
+        }
+
+        //----- print current count ------------------------------------------------
+        function printCurCount(){
+          curCount.textContent = "Guess Remain: " + String(5 - userGuessCount) + " ";
+        }
+
+        //----- check guess ----------------------------------------------------------
+        // check if the guess is valid and match the password or not
+        function checkGuess(){
+          // convert to integer
+          let guess = guessField.value;
+          const userGuess = Number(guess);
+
+          // check if input is integer and if it is inside the bound
+          if(guess === '' ||Number.isInteger(+guess)===false || userGuess < lowBound || userGuess > upBound){
+              printError();
+              return;
+          }
+          // if the player used super chance
+          else if(userGuessCount === 4 && usedChance){
+            // check if the player choose one number from the list
+            if(!randNumArray.includes(userGuess)){
+              gameMessage.textContent = 'Invalid Guess !!! Please pick one number from SUPER CHANCE Numbers list.';
+              gameMessage.style.backgroundColor='red';
+              guessField.value='';
+              guessField.focus();
+              return;
+            }
+            else{
+              gameMessage.style.backgroundColor='';
+            }
+          }
+
+          userGuessCount++;
+
+          // check if the player guess correctly or if they used all the chances
+          if(userGuess === randomNumber) {
+              lastResult.textContent = 'Ayyye. Congradulation you clear the mission!';
+              lastResult.style.backgroundColor = 'green';
+              gameMessage.textContent = '';
+              setGameOver();
+          }
+          else if(userGuessCount >= 5 || (5 - userGuessCount) === 0){
+              lastResult.textContent = 'The Bomb just EXPLODED :( GAMEOVER!';
+              lastResult.style.backgroundColor = 'red';
+              gameMessage.textContent='';
+              setGameOver();
+          }
+          // if the guess are in the range then replace lower Bound or upper Bound
+          else{
+              if(userGuess >= lowBound && userGuess < randomNumber){
+                  lowBound = userGuess;
+                  getWrongCount++;
+              }
+              else if(userGuess <= upBound && userGuess > randomNumber){
+                  upBound = userGuess;
+                  getWrongCount++;
+              }
+              diff = upBound - lowBound;
+              // open super chance at the fifth guess and when the difference between boundaries is greater 10
+              if(getWrongCount===4 && diff >= 10){
+                superChance.disabled = false;
+                guessSubmit.disabled = true;
+                guessField.disabled = true;
+                expandBound();
+              }
+              else if(getWrongCount < 5 && (getWrongCount != 4 || diff < 10 )){
+                expandBound();
+              }
+              
+          }
+          console.log(randomNumber); 
+          console.log("count: " + userGuessCount);
+
+          printBound();
+          printCurCount();
+
+          guessField.value = '';
+          guessField.focus();
+            
+        }
+
+        //----- give random numbers in super chance----------------------------
+        function getchanceRandom(){
+          const random = Math.floor(Math.random()* diff) + lowBound;
+          return random;
+        }
+
+        //----- use super chance ----------------------------------------------
+        function useChance(){
+          superChance.disabled = true;
+          guessSubmit.disabled = false;
+          guessField.disabled = false;
+          guessField.focus();
+          let num = -100;
+          let checkNum = -1;
+          let isValid = false;
+          diff = upBound-lowBound;
+
+          // if there are at least 4 numbers(include the password) between the boundaries then give four random number to the player
+          if(diff>=5){
+            // push the password to the array
+            randNumArray.push(randomNumber);
+
+            // get the other 3 random numbers
+            while(randNumArray.length != 4){
+
+              while(!isValid){
+                num = getchanceRandom();
+                // if the number does not include in the array then push
+                if(!randNumArray.includes(num)){
+                  isValid = true;
+                  randNumArray.push(num);
+                }
+              }
+              // reset the flag
+              isValid = false;
+
+            }
+
+            // sort the array in asscending order
+            randNumArray.sort(function(a,b){return a - b});
+            usedChance = true;
+            chanceList.textContent = "Here are the SUPER CHANCE Numbers : " +     String(randNumArray);
+          }
+          
+
+        }
+
+        //----------------------------------------------------------------------
+        superChance.disabled = true;
+        getRandom();
+        printBound();
+        printCurCount();
+        guessField.focus();
+        guessSubmit.addEventListener('click', checkGuess);
+        restartBut.addEventListener('click', resetGame);
+        superChance.addEventListener('click', useChance);
+
+        //----- set gameover ----------------------------------------------------
+        function setGameOver(){
+            guessField.disabled = true;
+            guessSubmit.disabled = true;
+            superChance.disabled = true;
+        }
+        //----- reset -----------------------------------------------------------
+        function resetGame(){
+            // reset count and boundaries
+            userGuessCount = 0;
+            upBound = 100;
+            lowBound = 0;
+            getWrongCount = 0;
+            diff = -1;
+            usedChance = false;
+            // select all text 
+            const resetParas = document.querySelectorAll('.resultParas p');
+            // reset every single one to empty
+            for(const resetPara of resetParas){
+                resetPara.textContent = '';
+            }
+            guessField.disabled = false;
+            guessSubmit.disabled = false;
+            restartBut.disabled = false;
+            superChance.disabled = true;
+
+            printBound();
+            printCurCount();
+
+            guessField.value = '';
+            chanceList.textContent = '';
+            guessField.focus();
+            lastResult.style.backgroundColor = '';
+            // get new random number
+            getRandom();
+
+        }
+
+        
+    </script>
+    
+  </body>
+</html>
