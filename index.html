@@ -103,7 +103,6 @@
         <li>You have a Super chance at your <span class="important">5th guess</span> which will give you four random number in the boundary include the password.</li>
         <li><span class="important">Super Chance:</span> You will be given <span class="important">4</span> random numbers <span class="important">include the password</span>, and you can pick <span class="important">1</span> of them for your guess.</li>  
         <li>However Super chance can <span class="important">only</span> be used when the differences between the boundaries are greater than <span class="important">10</span>. (Ex. Range between 10 to 20 etc)</li>
-        </li>
       </ul>
         
 
@@ -130,7 +129,6 @@
         //----- get randomNumber -----------------------------------------------------
         function getRandom(){
             randomNumber = Math.floor(Math.random() *100) + 1;
-            console.log(randomNumber); 
         }
 
         //----------------------------------------------------------------------------
@@ -160,7 +158,6 @@
 
         //----- print boundary-------------------------------------------------------
         function printBound(){
-            console.log('print bound, low: ' + String(lowBound) +' , high: ' + String(upBound)) ;
             gameMessage.textContent = 'The Range:  ' + String(lowBound) + ' to ' + String(upBound) + ' ';
         }
 
@@ -173,7 +170,6 @@
 
         //----- expand boundary and password ---------------------------------------
         function expandBound(){
-          console.log('expand');
           lowBound = lowBound * 2;
           upBound = upBound * 2;
           randomNumber = randomNumber * 2;
@@ -221,7 +217,7 @@
               setGameOver();
           }
           else if(userGuessCount >= 5 || (5 - userGuessCount) === 0){
-              lastResult.textContent = 'The Bomb just EXPLODED :( GAMEOVER!';
+              lastResult.textContent = 'The Bomb just EXPLODED :( GAMEOVER! (Password: ' + String(randomNumber) + ')';
               lastResult.style.backgroundColor = 'red';
               gameMessage.textContent='';
               setGameOver();
@@ -246,7 +242,6 @@
                 expandBound();
               }
               else if(getWrongCount < 5 && (getWrongCount != 4 || diff < 10 )){
-                console.log("hi");
                 expandBound();
               }
               
@@ -332,6 +327,7 @@
             getWrongCount = 0;
             diff = -1;
             usedChance = false;
+            randNumArray = [];
             // select all text 
             const resetParas = document.querySelectorAll('.resultParas p');
             // reset every single one to empty
