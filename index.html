@@ -10,10 +10,9 @@
     <style>
       html{
         color: black;
-        background-image:linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,.5)),url("https://bit.ly/3IhVNCp");
+        background-image:linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)),url("https://bit.ly/3IhVNCp");
         background-size: cover;
-        padding: 2.5%;
-        font-size: 105%;
+        padding: 2%;
       }
       body {
         font-family: Copperplate, Papyrus, fantasy;
@@ -21,6 +20,13 @@
         max-width: 800px;
         min-width: 480px;
         margin: 0 auto;
+      }
+      .title{
+        font-size: 140%;
+      }
+
+      .ruleList{
+        font-size: 120%;
       }
 
       .important{
@@ -41,6 +47,12 @@
         color: rgb(22, 122, 228);
         font-size: 140%;
       }
+
+      .pGuess{
+        font-size: 140%;
+        color: rgb(10, 63, 109);
+      }
+
       .guessLabel{
         color: rgba(18, 16, 117, 0.784);
         font-size: 140%;
@@ -80,35 +92,43 @@
 
   <body>
     <h1><u>Get Password for Bomb Games</u></h1>
-    <h3>Game Rule: </h3>
+    <h3 class="title">Game Rule: </h3>
     <!--
       - ゲームのルール(日本語ver.)
       - これは爆弾のパスワードを探すゲームです｡
       - パスワードは1から100までの乱数を選択します｡
       - プレーヤーは5回の確率でパスワードを推測します｡推測するたびに､範囲はプレーヤーの推測から上限または下限に変わります｡
       - 5回以内パスワードを取得する必要があります｡そうしないと､爆弾が爆発してGAMEOVERになります｡
-      - プレーヤーが間違っている数字を推測すると､範囲が2倍拡大します｡
-      - 範囲が拡大するたびに､パスワードも2倍になります｡
+      - プレーヤーが間違っている数字を推測すると､範囲とパスワードが10から50までランダムに拡大します｡
       - 5回目の推測で､範囲内の4つの乱数(パスワードも含む)を与えるスーパーチャンスが使えます｡
       - スーパーチャンス：パスワードを含む4つの乱数があげて､その中に1つを選んでください｡
       - しかし､スーパーチャンスは､範囲のさが10より大きい場合しか使えません｡
     -->
-    <ul>
+    <!--<ul class="ruleList">
         <li>We have selected a random number between <span class="important">1 and 100</span>.</li>
-        <li>You have to guess the random number in <span class="important">5</span> chances, and 
+        <li>You have to guess the password in <span class="important">5</span> chances, and 
         each time you guess the boundary will change from your guess to upper boundary or lower boudary. </li>
-        <li>You have to get random number within the chances you have, overwise the bomb will exploded and <span class="important">GAMEOVER</span>.</li>
-        <li>When you guess wrong the boundries will be <span class="important">2</span> times larger. (All wrong answers must be valid integer)</li>
-        <li>Everytime when the boundary expand, the random number will also be <span class="important">2</span> times larger.</li>
+        <li>You have to get password within the chances you have, overwise the bomb will exploded and <span class="important">GAMEOVER</span>.</li>
+        <li>When you guess wrong the boundries and the password will both be <span class="important">10~50</span> larger randomly. (All wrong answers must be valid integer)</li>
         <li>You have a Super chance at your <span class="important">5th guess</span> which will give you four random number in the boundary include the password.</li>
         <li><span class="important">Super Chance:</span> You will be given <span class="important">4</span> random numbers <span class="important">include the password</span>, and you can pick <span class="important">1</span> of them for your guess.</li>  
         <li>However Super chance can <span class="important">only</span> be used when the differences between the boundaries are greater than <span class="important">10</span>. (Ex. Range between 10 to 20 etc)</li>
+      </ul>-->
+    <ul class="ruleList">
+        <li>Password is between <span class="important">1 and 100</span>.</li>
+        <li>Player has <span class="important">5</span> chances to guess the password, and each time you guess the boundary will change </li>
+        <li>If player didn't get password within 5 chances, the bomb will exploded and <span class="important">GAMEOVER</span></li>
+        <li>When player guess wrong the range and the password will both be <span class="important">10~50</span> larger randomly. (All wrong answers must be valid integer)</li>
+        <li>You have a Super chance at your <span class="important">5th guess</span> which will give you four random number in the boundary include the password</li>
+        <li><span class="important">Super Chance:</span> You will be given <span class="important">4</span> random numbers <span class="important">include the password</span>, and you can pick <span class="important">1</span> of them for your guess</li>  
+        <li>Super chance can <span class="important">only</span> be used when the range between the boundaries are greater than <span class="important">10</span> (Ex. The Range: 10 to 20 etc)</li>
       </ul>
         
 
     <div class="resultParas">
       <p class="gameMessage"></p>
-      <p class="curCount"></p>
+        <p class="curCount"></p>
+        <p class="pGuess"></p>
       <p class="lastResult"></p>
     </div>
 
@@ -143,6 +163,7 @@
         const restartBut = document.querySelector('.restartGame');
 
         const chanceList = document.querySelector('.chanceList');
+        const pGuess = document.querySelector('.pGuess');
         // count player guess
         let userGuessCount = 0;
         let getWrongCount = 0;
@@ -154,11 +175,16 @@
         let usedChance = false;
         // store super chance number list
         let randNumArray = [];
+        // size for expend
+        const boundSize = [10, 20, 30, 40 ,50];
+        // player guesses
+        let playerGuess = [];
 
 
         //----- print boundary-------------------------------------------------------
         function printBound(){
-            gameMessage.textContent = 'The Range:  ' + String(lowBound) + ' to ' + String(upBound) + ' ';
+            gameMessage.textContent = 'The Range:  ' + String(lowBound) + ' to ' + String(upBound);
+            pGuess.textContent = 'Previous Guess: ' + playerGuess;
         }
 
         //----- print error ---------------------------------------------------------
@@ -170,9 +196,11 @@
 
         //----- expand boundary and password ---------------------------------------
         function expandBound(){
-          lowBound = lowBound * 2;
-          upBound = upBound * 2;
-          randomNumber = randomNumber * 2;
+          // get random size that will be expand
+          let expandSize = boundSize[Math.floor(Math.random()*boundSize.length)];
+
+          upBound = upBound + expandSize;
+          randomNumber = randomNumber + expandSize;
         }
 
         //----- print current count ------------------------------------------------
@@ -246,6 +274,8 @@
               }
               
           }
+
+          playerGuess.push(userGuess);
 
           printBound();
           printCurCount();
@@ -328,6 +358,7 @@
             diff = -1;
             usedChance = false;
             randNumArray = [];
+            playerGuess = [];
             // select all text 
             const resetParas = document.querySelectorAll('.resultParas p');
             // reset every single one to empty
@@ -346,6 +377,7 @@
             chanceList.textContent = '';
             guessField.focus();
             lastResult.style.backgroundColor = '';
+            gameMessage.style.backgroundColor = '';
             // get new random number
             getRandom();
 
