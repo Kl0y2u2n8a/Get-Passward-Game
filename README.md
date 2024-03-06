@@ -2,7 +2,7 @@
 
 Welcome to my Guess Password Game.
 
-You can access the website here: kl0y2u2n8a.github.io/Get-Password-Game/
+You can access the website here: https://kl0y2u2n8a.github.io/Get-Password-Game/
 
 Game Rule:
  - Password is between 1 and 100.
