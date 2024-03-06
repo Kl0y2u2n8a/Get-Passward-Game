@@ -4,6 +4,9 @@ Welcome to my Guess Password Game.
 
 You can access the website here: https://kl0y2u2n8a.github.io/Get-Password-Game/
 
+![截圖 2024-03-06 15 01 43](https://github.com/Kl0y2u2n8a/Get-Password-Game/assets/61998592/7e5fc70d-709a-4a96-b162-22749f1a3330)
+
+
 Game Rule:
  - Password is between 1 and 100.
  - Player has 5 chances to guess the password, and each time you guess the boundary will change
